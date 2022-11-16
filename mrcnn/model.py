@@ -127,6 +127,13 @@ def identity_block(input_tensor, kernel_size, filters, stage, block,
                   use_bias=use_bias)(x)
     x = BatchNorm(name=bn_name_base + '2c')(x, training=train_bn)
 
+    x = KL.LeakyReLU(alpha=0.2)(x)
+#     x = KL.Activation('relu')(x)
+
+    x = KL.Conv2D(nb_filter3, (1, 1), name=conv_name_base + '2d',
+                  use_bias=use_bias)(x)
+    x = BatchNorm(name=bn_name_base + '2d')(x, training=train_bn)
+
     x = KL.Add()([x, input_tensor])
 	
     x = KL.LeakyReLU(alpha=0.2, name='res' + str(stage) + block + '_out')(x)
@@ -148,7 +155,7 @@ def conv_block(input_tensor, kernel_size, filters, stage, block,
     Note that from stage 3, the first conv layer at main path is with subsample=(2,2)
     And the shortcut should have subsample=(2,2) as well
     """
-    nb_filter1, nb_filter2,nb_filter3 , nb_filter4 = filters
+    nb_filter1, nb_filter2,nb_filter3  = filters
     conv_name_base = 'res' + str(stage) + block + '_branch'
     bn_name_base = 'bn' + str(stage) + block + '_branch'
 
@@ -170,7 +177,7 @@ def conv_block(input_tensor, kernel_size, filters, stage, block,
 
     x = KL.LeakyReLU(alpha=0.2)(x)
 
-    x = KL.Conv2D(nb_filter4, (1, 1), name=conv_name_base +
+    x = KL.Conv2D(nb_filter3, (1, 1), name=conv_name_base +
                   '2d', use_bias=use_bias)(x)
     x = BatchNorm(name=bn_name_base + '2d')(x, training=train_bn)
 
