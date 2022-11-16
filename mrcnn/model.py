@@ -111,19 +111,26 @@ def identity_block(input_tensor, kernel_size, filters, stage, block,
     x = KL.Conv2D(nb_filter1, (1, 1), name=conv_name_base + '2a',
                   use_bias=use_bias)(input_tensor)
     x = BatchNorm(name=bn_name_base + '2a')(x, training=train_bn)
-    x = KL.Activation('relu')(x)
+    
+    x = KL.LeakyReLU(alpha=0.2)(x)
+#     x = KL.Activation('relu')(x)
+
 
     x = KL.Conv2D(nb_filter2, (kernel_size, kernel_size), padding='same',
                   name=conv_name_base + '2b', use_bias=use_bias)(x)
     x = BatchNorm(name=bn_name_base + '2b')(x, training=train_bn)
-    x = KL.Activation('relu')(x)
+    
+    x = KL.LeakyReLU(alpha=0.2)(x)
+#     x = KL.Activation('relu')(x)
 
     x = KL.Conv2D(nb_filter3, (1, 1), name=conv_name_base + '2c',
                   use_bias=use_bias)(x)
     x = BatchNorm(name=bn_name_base + '2c')(x, training=train_bn)
 
     x = KL.Add()([x, input_tensor])
-    x = KL.Activation('relu', name='res' + str(stage) + block + '_out')(x)
+	
+    x = KL.LeakyReLU(alpha=0.2, name='res' + str(stage) + block + '_out')(x)
+#     x = KL.Activation('relu', name='res' + str(stage) + block + '_out')(x)
     return x
 
 
@@ -141,30 +148,39 @@ def conv_block(input_tensor, kernel_size, filters, stage, block,
     Note that from stage 3, the first conv layer at main path is with subsample=(2,2)
     And the shortcut should have subsample=(2,2) as well
     """
-    nb_filter1, nb_filter2, nb_filter3 = filters
+    nb_filter1, nb_filter2,nb_filter3 , nb_filter4 = filters
     conv_name_base = 'res' + str(stage) + block + '_branch'
     bn_name_base = 'bn' + str(stage) + block + '_branch'
 
     x = KL.Conv2D(nb_filter1, (1, 1), strides=strides,
                   name=conv_name_base + '2a', use_bias=use_bias)(input_tensor)
     x = BatchNorm(name=bn_name_base + '2a')(x, training=train_bn)
-    x = KL.Activation('relu')(x)
+    x = KL.LeakyReLU(alpha=0.2)(x)
+    # x = KL.Activation('relu')(x)
 
     x = KL.Conv2D(nb_filter2, (kernel_size, kernel_size), padding='same',
                   name=conv_name_base + '2b', use_bias=use_bias)(x)
     x = BatchNorm(name=bn_name_base + '2b')(x, training=train_bn)
-    x = KL.Activation('relu')(x)
+    # x = KL.Activation('relu')(x)
+    x = KL.LeakyReLU(alpha=0.2)(x)
 
     x = KL.Conv2D(nb_filter3, (1, 1), name=conv_name_base +
                   '2c', use_bias=use_bias)(x)
     x = BatchNorm(name=bn_name_base + '2c')(x, training=train_bn)
+
+    x = KL.LeakyReLU(alpha=0.2)(x)
+
+    x = KL.Conv2D(nb_filter4, (1, 1), name=conv_name_base +
+                  '2d', use_bias=use_bias)(x)
+    x = BatchNorm(name=bn_name_base + '2d')(x, training=train_bn)
 
     shortcut = KL.Conv2D(nb_filter3, (1, 1), strides=strides,
                          name=conv_name_base + '1', use_bias=use_bias)(input_tensor)
     shortcut = BatchNorm(name=bn_name_base + '1')(shortcut, training=train_bn)
 
     x = KL.Add()([x, shortcut])
-    x = KL.Activation('relu', name='res' + str(stage) + block + '_out')(x)
+    # x = KL.Activation('relu', name='res' + str(stage) + block + '_out')(x)
+    x = KL.LeakyReLU(alpha=0.2, name='res' + str(stage) + block + '_out')(x)
     return x
 
 
@@ -179,7 +195,9 @@ def resnet_graph(input_image, architecture, stage5=False, train_bn=True):
     x = KL.ZeroPadding2D((3, 3))(input_image)
     x = KL.Conv2D(64, (7, 7), strides=(2, 2), name='conv1', use_bias=True)(x)
     x = BatchNorm(name='bn_conv1')(x, training=train_bn)
-    x = KL.Activation('relu')(x)
+    x = KL.LeakyReLU(alpha=0.2)(x)
+    # x = KL.Activation('relu')(x)
+    
     C1 = x = KL.MaxPooling2D((3, 3), strides=(2, 2), padding="same")(x)
     # Stage 2
     x = conv_block(x, 3, [64, 64, 256], stage=2, block='a', strides=(1, 1), train_bn=train_bn)
